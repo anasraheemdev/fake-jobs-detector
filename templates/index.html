@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Job Posting Detection</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #0d6efd;
+            --secondary-blue: #6f42c1;
+            --light-blue: #e7f1ff;
+            --dark-blue: #0a58ca;
+            --gradient-primary: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+            --gradient-secondary: linear-gradient(135deg, #e7f1ff 0%, #f8f9ff 100%);
+        }
+
+        body {
+            background: var(--gradient-secondary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .hero-section {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(13, 110, 253, 0.15);
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 110, 253, 0.3);
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .prediction-result {
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1rem 0;
+            border-left: 5px solid var(--primary-blue);
+        }
+
+        .prediction-result.fraudulent {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 50%);
+            border-left-color: #dc3545;
+        }
+
+        .prediction-result.legitimate {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 50%);
+            border-left-color: #198754;
+        }
+
+        .confidence-bar {
+            height: 25px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #e9ecef;
+            margin: 15px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease;
+            border-radius: 15px;
+        }
+
+        .confidence-fill.high-risk {
+            background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .confidence-fill.low-risk {
+            background: linear-gradient(90deg, #198754 0%, #157347 100%);
+        }
+
+        .example-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 15px;
+        }
+
+        .example-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(13, 110, 253, 0.2);
+        }
+
+        .footer {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .social-link {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            color: #ffd700;
+            transform: translateY(-3px);
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        .analysis-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin: 0.25rem;
+        }
+
+        .badge-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .badge-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        }
+
+        .badge-success {
+            background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 2rem 0;
+            }
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content text-center">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-shield-alt me-3"></i>Fake Job Posting Detector
+                </h1>
+                <p class="lead fs-5">AI-powered analysis to identify fraudulent job postings and protect job seekers</p>
+                <div class="mt-4">
+                    <span class="badge bg-light text-primary me-2 p-2">
+                        <i class="fas fa-robot me-1"></i>AI Powered
+                    </span>
+                    <span class="badge bg-light text-primary me-2 p-2">
+                        <i class="fas fa-bolt me-1"></i>Real-time Analysis
+                    </span>
+                    <span class="badge bg-light text-primary p-2">
+                        <i class="fas fa-chart-line me-1"></i>Detailed Insights
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container my-5">
+        <div class="row">
+            <!-- Form Section -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Job Posting Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="jobForm">
+                            <div class="mb-3">
+                                <label for="title" class="form-label fw-semibold">
+                                    <i class="fas fa-briefcase text-primary me-1"></i>Job Title *
+                                </label>
+                                <input type="text" class="form-control" id="title" name="title" required placeholder="e.g., Software Engineer">
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="location" class="form-label fw-semibold">
+                                        <i class="fas fa-map-marker-alt text-primary me-1"></i>Location
+                                    </label>
+                                    <input type="text" class="form-control" id="location" name="location" placeholder="e.g., New York, NY">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="department" class="form-label fw-semibold">
+                                        <i class="fas fa-building text-primary me-1"></i>Department
+                                    </label>
+                                    <input type="text" class="form-control" id="department" name="department" placeholder="e.g., Engineering">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="salary_range" class="form-label fw-semibold">
+                                    <i class="fas fa-dollar-sign text-primary me-1"></i>Salary Range
+                                </label>
+                                <input type="text" class="form-control" id="salary_range" name="salary_range" placeholder="e.g., $50,000-$70,000 annually">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="company_profile" class="form-label fw-semibold">
+                                    <i class="fas fa-industry text-primary me-1"></i>Company Profile
+                                </label>
+                                <textarea class="form-control" id="company_profile" name="company_profile" rows="3" placeholder="Brief description of the company..."></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label fw-semibold">
+                                    <i class="fas fa-file-alt text-primary me-1"></i>Job Description *
+                                </label>
+                                <textarea class="form-control" id="description" name="description" rows="4" required placeholder="Detailed job description..."></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="requirements" class="form-label fw-semibold">
+                                    <i class="fas fa-list-check text-primary me-1"></i>Requirements
+                                </label>
+                                <textarea class="form-control" id="requirements" name="requirements" rows="3" placeholder="Job requirements and qualifications..."></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="benefits" class="form-label fw-semibold">
+                                    <i class="fas fa-gift text-primary me-1"></i>Benefits
+                                </label>
+                                <textarea class="form-control" id="benefits" name="benefits" rows="3" placeholder="Benefits and perks offered..."></textarea>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="employment_type" class="form-label fw-semibold">Employment Type</label>
+                                    <select class="form-select" id="employment_type" name="employment_type">
+                                        <option value="Unknown">Select Type</option>
+                                        <option value="Full-time">Full-time</option>
+                                        <option value="Part-time">Part-time</option>
+                                        <option value="Contract">Contract</option>
+                                        <option value="Internship">Internship</option>
+                                        <option value="Temporary">Temporary</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="required_experience" class="form-label fw-semibold">Experience Level</label>
+                                    <select class="form-select" id="required_experience" name="required_experience">
+                                        <option value="Unknown">Select Experience</option>
+                                        <option value="Not Applicable">Not Applicable</option>
+                                        <option value="Entry level">Entry level</option>
+                                        <option value="Associate">Associate</option>
+                                        <option value="Mid-Senior level">Mid-Senior level</option>
+                                        <option value="Director">Director</option>
+                                        <option value="Executive">Executive</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="required_education" class="form-label fw-semibold">Education</label>
+                                    <select class="form-select" id="required_education" name="required_education">
+                                        <option value="Unknown">Select Education</option>
+                                        <option value="High School or equivalent">High School</option>
+                                        <option value="Some College Coursework Completed">Some College</option>
+                                        <option value="Associate Degree">Associate Degree</option>
+                                        <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                        <option value="Master's Degree">Master's Degree</option>
+                                        <option value="Doctorate">Doctorate</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="industry" class="form-label fw-semibold">Industry</label>
+                                    <select class="form-select" id="industry" name="industry">
+                                        <option value="Unknown">Select Industry</option>
+                                        <option value="Computer Software">Computer Software</option>
+                                        <option value="Marketing and Advertising">Marketing & Advertising</option>
+                                        <option value="Financial Services">Financial Services</option>
+                                        <option value="Healthcare">Healthcare</option>
+                                        <option value="Education">Education</option>
+                                        <option value="Retail">Retail</option>
+                                        <option value="Manufacturing">Manufacturing</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="function" class="form-label fw-semibold">Job Function</label>
+                                <select class="form-select" id="function" name="function">
+                                    <option value="Unknown">Select Function</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Sales">Sales</option>
+                                    <option value="Administrative">Administrative</option>
+                                    <option value="Customer Service">Customer Service</option>
+                                    <option value="Human Resources">Human Resources</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Additional Information</label>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="telecommuting" name="telecommuting">
+                                            <label class="form-check-label" for="telecommuting">
+                                                <i class="fas fa-home text-primary me-1"></i>Remote Work
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="has_company_logo" name="has_company_logo">
+                                            <label class="form-check-label" for="has_company_logo">
+                                                <i class="fas fa-image text-primary me-1"></i>Company Logo
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="has_questions" name="has_questions">
+                                            <label class="form-check-label" for="has_questions">
+                                                <i class="fas fa-question-circle text-primary me-1"></i>App Questions
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-outline-primary me-md-2" onclick="loadExample()">
+                                    <i class="fas fa-random me-1"></i>Load Example
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i>Analyze Job Posting
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="loading-spinner text-center mt-4" id="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Analyzing job posting...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Analysis Results</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="results">
+                            <div class="text-center py-5">
+                                <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+                                <p class="text-muted">Enter job posting details and click "Analyze" to see results</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examples Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Example Job Postings</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-4">Click on any example to load it into the form</p>
+                        <div class="row" id="examples">
+                            <!-- Examples will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-shield-alt me-2"></i>Fake Job Posting Detector
+                    </h5>
+                    <p class="mb-3">
+                        An AI-powered tool designed to help job seekers identify potentially fraudulent job postings 
+                        and protect themselves from employment scams.
+                    </p>
+                    <div class="mb-3">
+                        <span class="badge bg-light text-primary me-2 p-2">
+                            <i class="fas fa-brain me-1"></i>Machine Learning
+                        </span>
+                        <span class="badge bg-light text-primary me-2 p-2">
+                            <i class="fas fa-lock me-1"></i>Secure Analysis
+                        </span>
+                        <span class="badge bg-light text-primary p-2">
+                            <i class="fas fa-users me-1"></i>Community Driven
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <h6 class="fw-bold mb-3">Developed By</h6>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center justify-content-md-end mb-2">
+                            <strong class="me-2">Anas Raheem</strong>
+                            <a href="https://www.linkedin.com/in/anasraheem/" target="_blank" class="social-link">
+                                <i class="fab fa-linkedin"></i>
+                            </a>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-md-end">
+                            <strong class="me-2">Dyne Asif</strong>
+                            <a href="https://www.linkedin.com/in/muhammad-dyen-asif-73a6661b8/" target="_blank" class="social-link">
+                                <i class="fab fa-linkedin"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 opacity-25">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">© 2024 Fake Job Posting Detector. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-light opacity-75">
+                        <i class="fas fa-code me-1"></i>Built By <a href="https://webzics.com" style="color:#e7f1ff">Team Webzics</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let examples = [];
+
+        // Mock examples for demonstration
+        const mockExamples = [
+            {
+                title: "Senior Software Engineer",
+                location: "San Francisco, CA",
+                salary_range: "$120,000-$180,000 annually",
+                description: "We are looking for an experienced software engineer to join our growing team. You will be responsible for developing scalable web applications using modern technologies.",
+                requirements: "5+ years of experience in software development, proficiency in JavaScript, Python, and React.",
+                benefits: "Health insurance, 401k matching, flexible work hours, remote work options.",
+                employment_type: "Full-time",
+                required_experience: "Mid-Senior level",
+                required_education: "Bachelor's Degree",
+                industry: "Computer Software",
+                function: "Engineering"
+            },
+            {
+                title: "Make $5000 Weekly - Work From Home",
+                location: "Anywhere",
+                salary_range: "$5000 per week",
+                description: "Easy work from home opportunity! No experience needed. Just send us your personal information and start earning immediately!",
+                requirements: "No experience required. Must be willing to provide bank details for direct deposit.",
+                benefits: "Immediate start, work your own hours, no skills needed.",
+                employment_type: "Part-time",
+                required_experience: "Not Applicable",
+                required_education: "High School or equivalent",
+                industry: "Other",
+                function: "Other"
+            }
+        ];
+
+        // Load examples when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            examples = mockExamples;
+            displayExamples();
+        });
+
+        function displayExamples() {
+            const examplesContainer = document.getElementById('examples');
+            examplesContainer.innerHTML = '';
+
+            examples.forEach((example, index) => {
+                const isHighSalary = example.salary_range && (
+                    example.salary_range.includes('$5000') || 
+                    example.salary_range.includes('$10000') ||
+                    example.salary_range.includes('per week')
+                );
+
+                const col = document.createElement('div');
+                col.className = 'col-md-6 mb-3';
+                
+                col.innerHTML = `
+                    <div class="card example-card h-100" onclick="fillFormWithExample(${index})">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">${example.title}</h5>
+                            <div class="mb-2">
+                                <span class="badge ${isHighSalary ? 'bg-danger' : 'bg-success'} mb-2">
+                                    <i class="fas fa-dollar-sign me-1"></i>${example.salary_range || 'Salary not specified'}
+                                </span>
+                            </div>
+                            <p class="card-text text-muted">${example.description.substring(0, 100)}...</p>
+                            <div class="text-end">
+                                <small class="text-primary">
+                                    <i class="fas fa-mouse-pointer me-1"></i>Click to load
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                examplesContainer.appendChild(col);
+            });
+        }
+
+        function fillFormWithExample(index) {
+            const example = examples[index];
+            Object.keys(example).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.type === 'checkbox') {
+                        element.checked = example[key] === 1;
+                    } else {
+                        element.value = example[key] || '';
+                    }
+                }
+            });
+        }
+
+        function loadExample() {
+            if (examples.length > 0) {
+                const randomIndex = Math.floor(Math.random() * examples.length);
+                fillFormWithExample(randomIndex);
+            }
+        }
+
+        // Form submission
+        document.getElementById('jobForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Convert form data to object
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            // Handle checkboxes
+            data.telecommuting = document.getElementById('telecommuting').checked ? 1 : 0;
+            data.has_company_logo = document.getElementById('has_company_logo').checked ? 1 : 0;
+            data.has_questions = document.getElementById('has_questions').checked ? 1 : 0;
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').innerHTML = '';
+
+            // Mock analysis (replace with actual API call)
+            setTimeout(() => {
+                const mockResult = {
+                    is_fraudulent: data.salary_range && data.salary_range.includes('$5000'),
+                    confidence: Math.random() * 0.4 + 0.6, // 60-100%
+                    confidence_scores: {
+                        fraudulent: data.salary_range && data.salary_range.includes('$5000') ? 0.85 : 0.15,
+                        legitimate: data.salary_range && data.salary_range.includes('$5000') ? 0.15 : 0.85
+                    },
+                    feature_analysis: {
+                        suspicious_keywords: data.salary_range && data.salary_range.includes('$5000') ? 
+                            ['easy money', 'no experience', 'immediate start'] : [],
+                        red_flags: data.salary_range && data.salary_range.includes('$5000') ? 
+                            ['Unrealistic salary expectations', 'Vague job description', 'Requests personal information'] : [],
+                        green_flags: data.salary_range && !data.salary_range.includes('$5000') ? 
+                            ['Detailed job description', 'Realistic salary range', 'Clear requirements'] : []
+                    }
+                };
+                
+                displayResults(mockResult);
+                document.getElementById('loading').style.display = 'none';
+            }, 2000);
+        });
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (result.error) {
+                displayError(result.error);
+                return;
+            }
+
+            const isFraudulent = result.is_fraudulent;
+            const confidence = (result.confidence * 100).toFixed(1);
+            
+            resultsDiv.innerHTML = `
+                <div class="prediction-result ${isFraudulent ? 'fraudulent' : 'legitimate'}">
+                    <div class="text-center mb-4">
+                        <h3 class="fw-bold ${isFraudulent ? 'text-danger' : 'text-success'}">
+                            <i class="fas ${isFraudulent ? 'fa-exclamation-triangle' : 'fa-check-circle'} me-2"></i>
+                            ${isFraudulent ? 'LIKELY FRAUDULENT' : 'LIKELY LEGITIMATE'}
+                        </h3>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>Confidence Level</strong>
+                            <span class="fw-bold">${confidence}%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill ${isFraudulent ? 'high-risk' : 'low-risk'}" 
+                                 style="width: ${confidence}%">
+                                ${confidence}%
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <div class="fw-bold text-danger">${(result.confidence_scores.fraudulent * 100).toFixed(1)}%</div>
+                                <small class="text-muted">Fraud Risk</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fw-bold text-success">${(result.confidence_scores.legitimate * 100).toFixed(1)}%</div>
+                                <small class="text-muted">Legitimate</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                ${result.feature_analysis.suspicious_keywords.length > 0 ? `
+                    <div class="alert alert-warning border-0 rounded-3 mb-3">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>Suspicious Keywords Found
+                        </h6>
+                        <div>
+                            ${result.feature_analysis.suspicious_keywords.map(keyword => 
+                                `<span class="analysis-badge badge-warning text-white">"${keyword}"</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${result.feature_analysis.red_flags.length > 0 ? `
+                    <div class="alert alert-danger border-0 rounded-3 mb-3">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-flag text-danger me-2"></i>Red Flags Detected
+                        </h6>
+                        <ul class="mb-0 ps-3">
+                            ${result.feature_analysis.red_flags.map(flag => 
+                                `<li class="mb-1">${flag}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                
+                ${result.feature_analysis.green_flags.length > 0 ? `
+                    <div class="alert alert-success border-0 rounded-3 mb-3">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>Positive Indicators
+                        </h6>
+                        <ul class="mb-0 ps-3">
+                            ${result.feature_analysis.green_flags.map(flag => 
+                                `<li class="mb-1">${flag}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        This analysis is for informational purposes only. Always verify job postings independently.
+                    </small>
+                </div>
+            `;
+        }
+
+        function displayError(errorMessage) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="alert alert-danger border-0 rounded-3">
+                    <h6 class="fw-bold mb-2">
+                        <i class="fas fa-exclamation-circle me-2"></i>Analysis Error
+                    </h6>
+                    <p class="mb-0">${errorMessage}</p>
+                </div>
+            `;
+        }
+
+        // Add smooth scrolling to results when analysis completes
+        function scrollToResults() {
+            document.querySelector('#results').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'nearest' 
+            });
+        }
+
+        // Enhanced form validation
+        document.getElementById('jobForm').addEventListener('input', function(e) {
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            
+            if (title.trim() && description.trim()) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-search me-1"></i>Analyze Job Posting';
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-search me-1"></i>Complete Required Fields';
+            }
+        });
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+</body>
+</html>

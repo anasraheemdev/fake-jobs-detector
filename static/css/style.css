@@ -1,0 +1,200 @@
+/* Custom styles for Fake Job Posting Detector */
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container-fluid {
+    padding: 0;
+}
+
+/* Header Styles */
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border-bottom: none;
+    font-weight: 600;
+}
+
+/* Form Styles */
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Button Styles */
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 12px 24px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-outline-secondary:hover {
+    transform: translateY(-2px);
+}
+
+/* Results Styles */
+.result-card {
+    border-radius: 15px;
+    margin-bottom: 1rem;
+}
+
+.result-fraudulent {
+    border-left: 5px solid #dc3545;
+    background-color: #fff5f5;
+}
+
+.result-legitimate {
+    border-left: 5px solid #28a745;
+    background-color: #f8fff9;
+}
+
+.confidence-bar {
+    height: 25px;
+    border-radius: 15px;
+    overflow: hidden;
+    background-color: #e9ecef;
+}
+
+.confidence-fill {
+    height: 100%;
+    transition: width 1s ease;
+}
+
+.confidence-fraudulent {
+    background: linear-gradient(90deg, #dc3545, #ff6b6b);
+}
+
+.confidence-legitimate {
+    background: linear-gradient(90deg, #28a745, #51cf66);
+}
+
+/* Feature Analysis */
+.feature-item {
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.red-flag {
+    background-color: #ffe6e6;
+    color: #dc3545;
+    border-left: 3px solid #dc3545;
+}
+
+.green-flag {
+    background-color: #e6ffe6;
+    color: #28a745;
+    border-left: 3px solid #28a745;
+}
+
+.suspicious-keyword {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 3px solid #ffc107;
+}
+
+/* Loading Animation */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 0 15px;
+    }
+    
+    header {
+        padding: 2rem 1rem !important;
+    }
+    
+    header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .btn-lg {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #764ba2;
+} 
