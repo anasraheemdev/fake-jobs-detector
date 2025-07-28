@@ -7,7 +7,7 @@ An intelligent machine learning-powered web application that identifies fraudule
 
 ---
 
-![Application Preview]([https://raw.githubusercontent.com/anasraheemdev/fake-jobs-detector/main/image_d6649d.png](https://blogger.googleusercontent.com/img/a/AVvXsEiX0uEW88-C4rswFdu3Ka30aEy08JM-obv1fW9auogSAT7l-HdYIghML7qIHWJRTbJodceMR91rOT-p1PsLwPLzlCI7uHLFWV_AAuAJGERBKfT79kIAqKsMv-aw3gAzAoU8t3pZDwJLJBMmMnMrOeD0JhvlKLEKcfPgUiYdBXMAcqRLs2pHpp84jn1J72o))
+![https://blogger.googleusercontent.com/img/a/AVvXsEiX0uEW88-C4rswFdu3Ka30aEy08JM-obv1fW9auogSAT7l-HdYIghML7qIHWJRTbJodceMR91rOT-p1PsLwPLzlCI7uHLFWV_AAuAJGERBKfT79kIAqKsMv-aw3gAzAoU8t3pZDwJLJBMmMnMrOeD0JhvlKLEKcfPgUiYdBXMAcqRLs2pHpp84jn1J72o]([https://raw.githubusercontent.com/anasraheemdev/fake-jobs-detector/main/image_d6649d.png](https://blogger.googleusercontent.com/img/a/AVvXsEiX0uEW88-C4rswFdu3Ka30aEy08JM-obv1fW9auogSAT7l-HdYIghML7qIHWJRTbJodceMR91rOT-p1PsLwPLzlCI7uHLFWV_AAuAJGERBKfT79kIAqKsMv-aw3gAzAoU8t3pZDwJLJBMmMnMrOeD0JhvlKLEKcfPgUiYdBXMAcqRLs2pHpp84jn1J72o))
 
 ---
 
