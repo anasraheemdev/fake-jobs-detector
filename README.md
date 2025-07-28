@@ -120,10 +120,10 @@ fake-jobs-detector/
 This project was developed through collaborative effort:
 
 **[Anas Raheem](https://github.com/anasraheemdev)**  
-*Lead Developer & ML Engineer*
+Developer & ML Engineer*
 
 **[Dyne Asif](https://github.com/DyneStein)**  
-*Co-Developer & System Architect*
+*Developer & System Architect*
 
 ## 🤝 Contributing
 
