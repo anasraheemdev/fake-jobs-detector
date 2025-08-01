@@ -1,4 +1,4 @@
-# 🛡️ Fake Job Posting Detector
+# 🛡️ Fake Job Posting Detector 
 
 An intelligent machine learning-powered web application that identifies fraudulent job postings in real-time. Leveraging advanced text analysis and feature engineering, this tool helps job seekers avoid scams and find legitimate opportunities.
 
